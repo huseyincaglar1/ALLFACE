@@ -1,6 +1,6 @@
-# DemoAiEmo - Emotion-Based Activity Suggestion App
+# ALLFACE - Emotion-Based Activity Suggestion App
 
-**DemoAiEmo** is a Flutter-based mobile application that leverages real-time emotion recognition using facial expressions and suggests personalized activities based on the detected emotion and the user's profile information. The application integrates machine learning (TensorFlow Lite) and Firebase to enhance user experience and personalization.
+**ALLFACE** is a Flutter-based mobile application that leverages real-time emotion recognition using facial expressions and suggests personalized activities based on the detected emotion and the user's profile information. The application integrates machine learning (TensorFlow Lite) and Firebase to enhance user experience and personalization.
 
 ## Features
 - **Real-Time Emotion Detection**: Uses a TensorFlow Lite model to analyze facial expressions (happy, sad, angry) and detect dominant emotions.
