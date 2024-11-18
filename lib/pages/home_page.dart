@@ -4,14 +4,13 @@ import 'package:demoaiemo/language/lang_switcher.dart';
 import 'package:demoaiemo/util/my_background_img.dart';
 import 'package:demoaiemo/util/my_drawer.dart';
 import 'package:demoaiemo/util/my_list_tile.dart';
-import 'package:demoaiemo/util/my_textfields.dart';
 import 'package:demoaiemo/util/my_post_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({super.key});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -20,15 +19,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   FirestoreDatabase database = FirestoreDatabase();
   final TextEditingController newPostController = TextEditingController();
-  final TextEditingController personalActivityController =
-      TextEditingController();
+  final TextEditingController personalActivityController = TextEditingController();
   User? user = FirebaseAuth.instance.currentUser;
 
   String? selectedMood;
-
-  List<String> moods = ["Öfkeli", "Mutlu", "Üzgün"];
-
-//Text(AppLocalizations.of(context)!.happy),
+  List<String> moods = ["Öfkeli", "Mutlu", "Üzgün"]; // Ruh hali seçenekleri
 
   void postMessage() async {
     String postMessage = newPostController.text.trim();
@@ -36,43 +31,34 @@ class _HomePageState extends State<HomePage> {
 
     if (postMessage.isNotEmpty && selectedMood != null && user != null) {
       String? userEmail = user?.email;
-      await FirebaseFirestore.instance.collection('Posts').add({
-        'PostMessage': postMessage,
-        'activityName': personalActivity,
-        'mood': selectedMood,
-        'TimeStamp': Timestamp.now(),
-        'UserEmail': userEmail
-      });
+      await database.addPost(postMessage, userEmail, selectedMood, personalActivity); // Güncellenmiş metod çağrısı
 
-      // Clear the fields
+      // Alanları temizle
       newPostController.clear();
       personalActivityController.clear();
       setState(() {
-        selectedMood = null; // Reset the selected mood
+        selectedMood = null; // Seçilen ruh halini sıfırla
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Mevcut tema modunu kontrol ediyoruz.
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("Y U Z U G"),
+        title: const Text("A L L F A C E"),
         actions: [
           Container(
             padding: const EdgeInsets.all(16),
-            child: const LanguageSwitcher(
-              showText: false,
-            ),
+            child: const LanguageSwitcher(showText: false),
           ),
         ],
       ),
       drawer: const MyDrawer(),
       body: BackgroundContainer(
-        
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -84,122 +70,108 @@ class _HomePageState extends State<HomePage> {
                     child: Row(
                       children: [
                         Expanded(
-                            child: Column(
-                          children: [
-                            DropdownButtonFormField<String>(
-                              value: selectedMood,
-                              decoration: InputDecoration(
-                                filled: true,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20)),
-                                labelText: AppLocalizations.of(context)!
-                                    .howYouFeel, //"Nasıl Hissediyorsun?",
+                          child: Column(
+                            children: [
+                              // Ruh hali seçimi
+                              DropdownButtonFormField<String>(
+                                value: selectedMood,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+                                  labelText: AppLocalizations.of(context)!.howYouFeel,
+                                ),
+                                items: moods.map((String mood) {
+                                  return DropdownMenuItem<String>(
+                                    value: mood,
+                                    child: Text(mood),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedMood = value;
+                                  });
+                                },
                               ),
-                              items: moods.map((String mood) {
-                                return DropdownMenuItem<String>(
-                                  value: mood,
-                                  child: Text(mood),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedMood = value;
-                                });
-                              },
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            TextField(
-                              obscureText: false,
-                              controller: personalActivityController,
-                              decoration: InputDecoration(
-                                filled: true, // filled özelliği true yapılıyor
-                                //fillColor: Colors.black, // Arkaplan rengi
-                                hintText: AppLocalizations.of(context)!
-                                    .createAnctivity,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
+                              const SizedBox(height: 5),
+                              // Kişisel etkinlik girişi
+                              TextField(
+                                obscureText: false,
+                                controller: personalActivityController,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  hintText: AppLocalizations.of(context)!.createAnctivity,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            TextField(
-                              obscureText: false,
-                              controller: newPostController,
-                              decoration: InputDecoration(
-                                filled: true, // filled özelliği true yapılıyor
-                                //fillColor: Colors.grey[200], // Arkaplan rengi
-                                hintText: AppLocalizations.of(context)!
-                                    .letsHearIt, //"Bahset bakalım ",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
+                              const SizedBox(height: 5),
+                              // Mesaj girişi
+                              TextField(
+                                obscureText: false,
+                                controller: newPostController,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  hintText: AppLocalizations.of(context)!.letsHearIt,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        )),
-                        MyPostButton(onTap: postMessage)
+                            ],
+                          ),
+                        ),
+                        MyPostButton(onTap: postMessage) // Gönderi butonu
                       ],
                     ),
                   ),
-                  FutureBuilder<List<DocumentSnapshot>>(
-                      future: database.getPostsStream(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (snapshot.hasData) {
-                          final combinedPosts = snapshot.data!;
+                  // Gönderi akışını dinleyen StreamBuilder
+                  StreamBuilder<List<DocumentSnapshot>>(
+                    stream: database.getPostsStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasData) {
+                        final combinedPosts = snapshot.data!;
 
-                          if (combinedPosts.isEmpty) {
-                            return Center(
-                                child: Text(AppLocalizations.of(context)!
-                                    .noPostYet)); //Text("Henüz bir paylaşım yok."));
-                          }
-                          return Expanded(
-                              child: ListView.builder(
-                                  itemCount: combinedPosts.length,
-                                  itemBuilder: (context, index) {
-                                    final post = combinedPosts[index];
-                                    String message = post['PostMessage'];
-                                    String userEmail = post['UserEmail'];
-                                    Timestamp timestamp = post['TimeStamp'];
-                                    String? actName = (post.data() as Map<
-                                            String, dynamic>)['activityName'] ??
-                                        "";
-                                    String? mood = (post.data()
-                                            as Map<String, dynamic>)['mood'] ??
-                                        "";
-
-                                    return MyListTile(
-                                      title: [
-                                        if (actName != null &&
-                                            actName.isNotEmpty)
-                                          "Activity: $actName",
-                                        if (mood != null && mood.isNotEmpty)
-                                          "Mod: $mood",
-                                        message
-                                      ].where((s) => s.isNotEmpty).join('\n'),
-                                      subTitle: userEmail,
-                                      time: timestamp.toDate(),
-                                    );
-                                  }));
-                        } else {
-                          return const Center(
-                              child: Text("No data available."));
+                        if (combinedPosts.isEmpty) {
+                          return Center(child: Text(AppLocalizations.of(context)!.noPostYet));
                         }
-                      })
+                        return Expanded(
+                          child: ListView.builder(
+                            itemCount: combinedPosts.length,
+                            itemBuilder: (context, index) {
+                              final post = combinedPosts[index];
+                              String message = post['PostMessage'];
+                              String userEmail = post['UserEmail'];
+                              Timestamp timestamp = post['TimeStamp'];
+                              String actName = (post.data() as Map<String, dynamic>)['activityName'] ?? '';
+                              String mood = (post.data() as Map<String, dynamic>)['mood'] ?? '';
+
+                              return MyListTile(
+                                title: [
+                                  "Aktivite: $actName", // Activity her zaman eklenir
+                                  "Ruh Hali: $mood",       // Mood her zaman eklenir
+                                  message,             // Mesaj her zaman eklenir
+                                ].join('\n'), // Liste öğelerini birleştir
+                                subTitle: userEmail,
+                                time: timestamp.toDate(),
+                                actionType: 'publish',     // Aksiyon türü
+                              );
+                            },
+                          ),
+                        );
+                      } else {
+                        return const Center(child: Text("No data available."));
+                      }
+                    },
+                  )
+
                 ],
               ),
             ),
             Container(
-              // Camera Icon
               padding: const EdgeInsets.all(15),
               height: 100,
               width: 100,

@@ -7,6 +7,7 @@ import 'package:demoaiemo/util/my_textfields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_searchable_dropdown/flutter_searchable_dropdown.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
@@ -23,13 +24,21 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController surnameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController passwordConfirmController =
-      TextEditingController();
+  final TextEditingController passwordConfirmController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
-  final TextEditingController occupationController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
-  String selectedGender = "Kadın";
+  String selectedGender = "Erkek";
+
+  // Ön tanımlı meslek listesi
+  final List<String> occupations = [
+    "Medya Çalışanı", "Finans Çalışanı", "Öğrenci",
+    "Doktor", "Mühendis", "Öğretmen", "Avukat", "Sanatçı", "Yazılımcı",
+    "Müzisyen", "Yazar", "Pazarlamacı", "Yönetici",
+    "Elektrikçi", "Tasarımcı", "Diğer"
+  ];
+
+  String? selectedOccupation;
 
   @override
   Widget build(BuildContext context) {
@@ -39,47 +48,42 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(
-              height: 100,
-            ),
+            const SizedBox(height: 100),
             _title(),
             Expanded(
-                child: ListView(
-                    padding: const EdgeInsets.all(25.0),
-                    shrinkWrap: true,
-                    children: [
-                  const SizedBox(
-                    height: 25,
-                  ),
+              child: ListView(
+                padding: const EdgeInsets.all(25.0),
+                shrinkWrap: true,
+                children: [
+                  const SizedBox(height: 25),
                   _loginform(),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                   MyBotton(
                     text: "Kaydol",
                     onTap: registerUser,
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Hesabın var mu?",
+                        "Hesabın var mı?",
                         style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.inversePrimary),
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
                       ),
                       GestureDetector(
-                          onTap: widget.onTap,
-                          child: const Text(
-                            "Giriş Yap",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ))
+                        onTap: widget.onTap,
+                        child: const Text(
+                          "Giriş Yap",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ],
                   ),
-                ]))
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -87,31 +91,34 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void registerUser() async {
-    //loading circlı göster
+    // Yükleniyor dairesi göster
     showDialog(
-        context: context,
-        builder: (context) => const Center(
-              child: CircularProgressIndicator(),
-            ));
+      context: context,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
 
-    //şifrelerin eşleştiğini checkle
+    // Şifrelerin eşleştiğini kontrol et
     if (passwordConfirmController.text != passwordController.text) {
-      Navigator.pop(context); //loading circlı çıkar
-      displayMessageToUser("Şifre eşleşmedi!", context); //error ver
+      Navigator.pop(context); // Yükleniyor dairesini kaldır
+      displayMessageToUser("Şifre eşleşmedi!", context); // Hata ver
     } else {
-      //kullanıcı oluştur
+      // Kullanıcı oluştur
       try {
         UserCredential? userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-                email: emailController.text, password: passwordController.text);
+          email: emailController.text,
+          password: passwordController.text,
+        );
 
-        //kullanıcı dosyası oluşturup firestore a ekle
+        // Kullanıcı dosyasını oluşturup Firestore'a ekle
         createUserDocument(userCredential);
 
-        //loading circle çıkar
+        // Yükleniyor dairesini kaldır
         if (context.mounted) Navigator.pop(context);
       } on FirebaseAuthException catch (e) {
-        //loading circle çıkar
+        // Yükleniyor dairesini kaldır
         Navigator.pop(context);
         displayMessageToUser(e.code, context);
       }
@@ -120,13 +127,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _title() {
     return const SizedBox(
-        child: Text(
-      "Y U Z U G",
-      style: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
+      child: Text(
+        "A L L F A C E",
+        style: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    ));
+    );
   }
 
   Widget _loginform() {
@@ -139,47 +147,42 @@ class _RegisterPageState extends State<RegisterPage> {
                 hintText: "Adınız",
                 obscureText: false,
                 controller: nameController,
+                enabled: true,
               ),
             ),
-            const SizedBox(
-              width: 10,
-            ),
+            const SizedBox(width: 10),
             Expanded(
               child: MyTextfield(
                 hintText: "Soyadınız",
                 obscureText: false,
                 controller: surnameController,
+                enabled: true,
               ),
             ),
           ],
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         MyTextfield(
           hintText: "Mail Adresiniz",
           obscureText: false,
           controller: emailController,
+          enabled: true,
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         MyTextfield(
           hintText: "Şifreniz",
           obscureText: true,
           controller: passwordController,
+          enabled: true,
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         MyTextfield(
-          hintText: "Şifreni Doğrula",
+          hintText: "Şifrenizi Doğrula",
           obscureText: true,
           controller: passwordConfirmController,
+          enabled: true,
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         LabeledRadio(
           groupValue: selectedGender,
           onChanged: (value) {
@@ -189,9 +192,7 @@ class _RegisterPageState extends State<RegisterPage> {
           },
           controller: genderController,
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         TextField(
           controller: ageController,
           keyboardType: TextInputType.number,
@@ -204,17 +205,35 @@ class _RegisterPageState extends State<RegisterPage> {
             FilteringTextInputFormatter.digitsOnly
           ],
         ),
-        const SizedBox(
-          height: 10,
+        const SizedBox(height: 10),
+
+        // Meslek seçim kısmı
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SearchableDropdown.single(
+              items: occupations.map((occupation) {
+                return DropdownMenuItem<String>(
+                  value: occupation,
+                  child: Text(occupation),
+                );
+              }).toList(),
+              value: selectedOccupation,
+              hint: "Mesleğiniz",
+              searchHint: "",
+              onChanged: (value) {
+                setState(() {
+                  selectedOccupation = value;
+                });
+              },
+              isExpanded: true,
+            ),
+            const SizedBox(height: 10),
+              
+          ],
         ),
-        MyTextfield(
-          hintText: "Mesleğiniz",
-          obscureText: false,
-          controller: occupationController,
-        ),
-        const SizedBox(
-          height: 10,
-        ),
+
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
@@ -222,11 +241,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 hintText: "Konumunuz:",
                 obscureText: false,
                 controller: locationController,
+                enabled: true,
               ),
             ),
-            const SizedBox(
-              width: 10,
-            ),
+            const SizedBox(width: 10),
             Expanded(
               child: LabeledLocationButton(
                 controller: locationController,
@@ -248,8 +266,8 @@ class _RegisterPageState extends State<RegisterPage> {
         'Name': nameController.text,
         'Surname': surnameController.text,
         'Gender': genderController.text,
-        'Age': int.parse(ageController.text),
-        'Occupation': occupationController.text,
+        'Age': ageController.text,
+        'Occupation': selectedOccupation,
         'Location': locationController.text,
       });
     }

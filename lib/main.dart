@@ -2,6 +2,7 @@ import 'package:demoaiemo/language/lang_provider.dart';
 import 'package:demoaiemo/pages/camera_page.dart';
 import 'package:demoaiemo/auth/auth_page.dart';
 import 'package:demoaiemo/pages/home_page.dart';
+import 'package:demoaiemo/pages/verification_page.dart';
 import 'package:demoaiemo/pages/profile_page.dart';
 import 'package:demoaiemo/pages/setting_page.dart';
 import 'package:demoaiemo/pages/suggestion_page.dart';
@@ -32,12 +33,14 @@ Future<void> main() async {
         ChangeNotifierProvider(
             create: (context) => LanguageProvider()), // Add LanguageProvider
       ],
-      child: MainApp(),
+      child: const MainApp(),
     ),
   );
 }
 
 class MainApp extends StatefulWidget {
+  const MainApp({super.key});
+
   @override
   State<MainApp> createState() => _MainAppState();
 
@@ -66,11 +69,12 @@ class _MainAppState extends State<MainApp> {
           ],
           locale: languageProvider.locale,
           routes: {
-            '/homepage': (context) => HomePage(),
+            '/homepage': (context) => const HomePage(),
             '/camerapage': (context) => const CameraPage(),
-            '/profilepage': (context) => ProfilePage(),
+            '/profilepage': (context) => const ProfilePage(),
             '/settingpage': (context) => const SettingPage(),
             '/suggestionpage': (context) => const SuggestionPage(),
+            '/verificationpage': (context) => const VerificationPage(), 
             '/apprrovedactivitiespage': (context) =>
                 const ApprovedActivitiesPage(),
           },

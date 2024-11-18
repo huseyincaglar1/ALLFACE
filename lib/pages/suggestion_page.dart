@@ -18,7 +18,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
   List<String> _myDecisionSuggestions = [];
   List<String> _mostChosenSuggestions = [];
   bool _isLoading = true;
-  String url = 'http://192.168.1.13:5000';
+  String url = 'http://192.168.80.16';
 
   @override
   void didChangeDependencies() {
@@ -60,13 +60,12 @@ class _SuggestionPageState extends State<SuggestionPage> {
     String job = userDoc['Occupation'];
 
     try {
-      final response = await _postRequest('/predict', {
+      final response = await _postRequest('http://192.168.80.16:5000/predict', {
         'yas': age,
         'meslek': job,
         'cinsiyet': gender,
-        'mood': args["emotion"],
+        'mood': args["emotion"].toLowerCase(),
       });
-      
 
       print('Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
@@ -107,9 +106,9 @@ class _SuggestionPageState extends State<SuggestionPage> {
     String userId = user.email!;
 
     try {
-      final response = await _postRequest('/get_most_frequent_activity', {
+      final response = await _postRequest('http://192.168.80.16:5000/get_most_frequent_activity', {
         'user_id': userId,
-        'mood': args["emotion"],
+        'mood': args["emotion"].toLowerCase(),
       });
 
       print('Status Code: ${response.statusCode}');
@@ -117,16 +116,23 @@ class _SuggestionPageState extends State<SuggestionPage> {
 
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
-        setState(() {
-          _myDecisionSuggestions =
-              List<String>.from(decodedResponse['most_frequent_activity_user']);
-        });
+        print(decodedResponse);
+
+        if (decodedResponse['most_frequent_activity_user'] != null &&
+            decodedResponse['most_frequent_activity_user'] is String) {
+          setState(() {
+            _myDecisionSuggestions = [decodedResponse['most_frequent_activity_user']];
+          });
+        } else {
+          setState(() {
+            _myDecisionSuggestions = ["Kullanıcının tercihi yok."];
+          });
+        }
       } else {
-        print(
-            'Most frequent activity request failed. Status Code: ${response.statusCode}');
+        print('Kullanıcı aktiviteleri isteği başarısız oldu. Status Code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Hata: $e');
     }
   }
 
@@ -135,9 +141,9 @@ class _SuggestionPageState extends State<SuggestionPage> {
     if (args == null) return;
 
     try {
-      final response = await _postRequest('/get_most_frequent_activity', {
-        'user_id': 'all_users', // Genel kullanıcıları temsil eden bir kimlik
-        'mood': args["emotion"],
+      final response = await _postRequest('http://192.168.80.16:5000/get_most_frequent_activity', {
+        'user_id': 'all_users',
+        'mood': args["emotion"].toLowerCase(),
       });
 
       print('Status Code: ${response.statusCode}');
@@ -145,20 +151,37 @@ class _SuggestionPageState extends State<SuggestionPage> {
 
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
-        setState(() {
-          _mostChosenSuggestions =
-              List<String>.from(decodedResponse['most_frequent_activity_all']);
-        });
+        print(decodedResponse);
+
+        if (decodedResponse['most_frequent_activity_all'] != null) {
+          if (decodedResponse['most_frequent_activity_all'] is List) {
+            setState(() {
+              _mostChosenSuggestions = List<String>.from(decodedResponse['most_frequent_activity_all']);
+            });
+          } else {
+            setState(() {
+              _mostChosenSuggestions = [decodedResponse['most_frequent_activity_all'].toString()];
+            });
+          }
+        } else {
+          setState(() {
+            _mostChosenSuggestions = ["Hiçbir kullanıcı önerisi yok."];
+          });
+        }
       } else {
-        print(
-            'Most frequent activity request failed. Status Code: ${response.statusCode}');
+        print('Tüm kullanıcı aktiviteleri isteği başarısız oldu. Status Code: ${response.statusCode}');
+        setState(() {
+          _mostChosenSuggestions = ["Hiçbir kullanıcı önerisi yok."];
+        });
       }
     } catch (e) {
-      print('Error: $e');
+      print('Hata: $e');
+      setState(() {
+        _mostChosenSuggestions = ["Bir hata oluştu."];
+      });
     }
   }
 
-  // Helper Methods
   Map<String, dynamic>? _getRouteArguments() {
     return ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
   }
@@ -181,7 +204,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
   Future<http.Response> _postRequest(
       String endpoint, Map<String, dynamic> body) async {
     return await http.post(
-      Uri.parse('$url$endpoint'),
+      Uri.parse(endpoint),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8'
       },
@@ -195,25 +218,29 @@ class _SuggestionPageState extends State<SuggestionPage> {
       appBar: AppBar(title: const Text("Öneri Sayfası")),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Algilanan Duygu: $detectedEmotion",
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: SuggestionToggles(
-                      modelBasedSuggestions: _modelBasedSuggestions,
-                      myDecisionSuggestions: _myDecisionSuggestions,
-                      mostChosenSuggestions: _mostChosenSuggestions,
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Algilanan Duygu: $detectedEmotion",
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    SuggestionToggles(
+                      modelBasedSuggestions: _modelBasedSuggestions,
+                      myDecisionSuggestions: _myDecisionSuggestions.isNotEmpty
+                          ? _myDecisionSuggestions
+                          : ["Kullanıcının tercihi yok."],
+                      mostChosenSuggestions: _mostChosenSuggestions.isNotEmpty
+                          ? _mostChosenSuggestions
+                          : ["Hiçbir kullanıcı önerisi yok."],
+                    ),
+                  ],
+                ),
               ),
             ),
     );

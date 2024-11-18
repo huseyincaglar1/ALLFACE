@@ -32,25 +32,23 @@ class _ApprovedActivitiesPageState extends State<ApprovedActivitiesPage> {
                   .collection('ApprovedActivities')
                   .snapshots(),
               builder: (context, snapshot) {
+                //burada içerik işleniyor
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-        
                 final approvedActivities = snapshot.data!.docs;
-        
                 if (approvedActivities.isEmpty) {
                   return const Center(
                     child: Text("Onaylanmış bir etkinlik yok."),
                   );
                 }
-        
                 return Expanded(
                   child: ListView.builder(
                     itemCount: approvedActivities.length,
                     itemBuilder: (context, index) {
                       final activity = approvedActivities[index];
-                      String activityName = activity['activityName'];
-                      String mood = activity['mood'];
+                      String activityName = activity['activityName'] ?? "Bilinmiyor";
+                      String mood = activity['mood'] ?? "Bilinmiyor";
                       DateTime approvalDate =
                           DateTime.parse(activity['approvalDate']);
                       return MyListTile(
@@ -72,48 +70,54 @@ class _ApprovedActivitiesPageState extends State<ApprovedActivitiesPage> {
   }
 
   Future<void> publishActivity(String activityName, String mood) async {
-    String comment = ''; // Initialize comment
+  String comment = '';
 
-    // Show dialog for user to input comment before publishing
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Gönderi Paylaş'),
-          content: TextField(
-            onChanged: (value) {
-              comment = value;
-            },
-            maxLines: null, // Metin sınırsız satıra bölünebilir
-            keyboardType: TextInputType.multiline,
-            decoration: InputDecoration(
-                hintText: "Biraz activitenden bahsetsene",
-                hintStyle:
-                    TextStyle(color: Theme.of(context).colorScheme.secondary)),
+  // Show dialog for user to input comment before publishing
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Gönderi Paylaş'),
+        content: TextField(
+          onChanged: (value) {
+            comment = value;
+          },
+          maxLines: null,
+          keyboardType: TextInputType.multiline,
+          decoration: InputDecoration(
+            hintText: "Biraz aktivitenden bahsetsene",
+            hintStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('İptal'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text(
-                'Paylaş',
-                style: TextStyle(color: Theme.of(context).colorScheme.primary),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Dialogdan çık
+            },
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Burada dialogu kapatmadan önce işlemi başlatıyoruz
+              Navigator.of(context).pop(); // Dialogu kapat
 
-    // Save the activity with comment in Firestore
-    if (user != null && comment.isNotEmpty) {
+              // Firestore'da veri kaydetme işlemini başlat
+              publishToFirestore(activityName, mood, comment);
+            },
+            child: Text(
+              'Paylaş',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<void> publishToFirestore(String activityName, String mood, String comment) async {
+  if (user != null && comment.isNotEmpty) {
+    try {
       await firestore.collection('PublishedActivities').add({
         'activityName': activityName,
         'mood': mood,
@@ -121,6 +125,29 @@ class _ApprovedActivitiesPageState extends State<ApprovedActivitiesPage> {
         'PostMessage': comment,
         'TimeStamp': Timestamp.now(),
       });
+      // Başarılı olduğunda bir mesaj göster
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Gönderi başarıyla paylaşıldı."),
+        ),
+      );
+    } catch (e) {
+      // Hata mesajı göster
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Gönderi kaydedilirken hata oluştu: $e"),
+        ),
+      );
     }
+  } else {
+    // Kullanıcı girişi yoksa veya yorum boşsa hata göster
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Kullanıcı girişi yapılmamış veya yorum boş."),
+      ),
+    );
   }
+}
+
+
 }

@@ -4,11 +4,9 @@ import 'package:demoaiemo/util/my_botton.dart';
 import 'package:demoaiemo/util/my_textfields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // İkonlar için paket
+// İkonlar için paket
 import 'package:demoaiemo/theme/theme_provider.dart';
-import 'package:demoaiemo/util/my_botton.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -46,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          "Çifremi Unuttum",
+                          "Şifremi Unuttum",
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.primary),
                         ),
@@ -124,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _title() {
     return const SizedBox(
         child: Text(
-      "Y U Z U G",
+      "A L L F A C E",
       style: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.bold,

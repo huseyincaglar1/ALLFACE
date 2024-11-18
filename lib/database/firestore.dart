@@ -1,54 +1,46 @@
-/*
-Kullanıcıların paylaştığı postları burada tutar.
-Firebasedeki "Posts" koleksiyonununu içerir
-
-Her post:
-- mesaj
-- kullanıcı mailini
-- paylaşıldığı zamanı içerir
-
-*/
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rxdart/rxdart.dart';
 
 class FirestoreDatabase {
   User? user = FirebaseAuth.instance.currentUser;
-  final CollectionReference post =
-      FirebaseFirestore.instance.collection('Posts');
+  final CollectionReference post = FirebaseFirestore.instance.collection('Posts');
 
-  Future<void> addPost(String message) {
+  // Yeni bir gönderi ekler
+  Future<void> addPost(String message, String? userEmail, String? mood, String? activityName) {
     return post.add({
-      'UserEmail': user!.email,
+      'UserEmail': userEmail,
       'PostMessage': message,
-      'TimeStamp': Timestamp.now()
+      'mood': mood,
+      'activityName': activityName,
+      'TimeStamp': Timestamp.now(),
     });
   }
 
+  // Gönderiyi günceller
   Future<void> updatePost(String postId, String updatedMessage) async {
     await post.doc(postId).update({
       'PostMessage': updatedMessage,
-      'TimeStamp': Timestamp.now(), // Optionally update timestamp
+      'TimeStamp': Timestamp.now(),
     });
   }
 
-  Future<List<DocumentSnapshot<Object?>>> getPostsStream() async {
-    final postsSnapshot = await FirebaseFirestore.instance
-        .collection('Posts').get();
-    final activitiesSnapshot = await FirebaseFirestore.instance
-        .collection('PublishedActivities')
-        .get();
-    List<DocumentSnapshot> combinedList = [
-      ...postsSnapshot.docs,
-      ...activitiesSnapshot.docs,
-    ];
-    combinedList.sort((a, b) {
+  // Gönderi akışını alır
+  Stream<List<DocumentSnapshot>> getPostsStream() {
+    Stream<QuerySnapshot> postsStream = post.snapshots();
+    Stream<QuerySnapshot> activitiesStream = FirebaseFirestore.instance.collection('PublishedActivities').snapshots();
+
+    return Rx.combineLatest2(postsStream, activitiesStream, (QuerySnapshot posts, QuerySnapshot activities) {
+      List<DocumentSnapshot> combinedList = [
+        ...posts.docs,
+        ...activities.docs,
+      ];
+      combinedList.sort((a, b) {
         DateTime timestampA = (a['TimeStamp'] as Timestamp).toDate();
         DateTime timestampB = (b['TimeStamp'] as Timestamp).toDate();
-        return timestampB.compareTo(timestampA); // Sort in descending order
+        return timestampB.compareTo(timestampA); // Azalan sırayla sıralar
       });
-
-    return combinedList;
-
+      return combinedList; // Sıralı listeyi döndür
+    });
   }
 }

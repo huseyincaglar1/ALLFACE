@@ -5,9 +5,9 @@ import 'package:geocoding/geocoding.dart';
 class LabeledLocationButton extends StatefulWidget {
   final TextEditingController controller;
   const LabeledLocationButton({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   _LabeledLocationButtonState createState() => _LabeledLocationButtonState();
@@ -96,7 +96,7 @@ class _LabeledLocationButtonState extends State<LabeledLocationButton> {
         const SizedBox(height: 2),
         Text(
           _currentAddress ?? "Konuma izin verilmedi.",
-          style: TextStyle(fontSize: 10),
+          style: const TextStyle(fontSize: 10),
         ),
       ],
     );

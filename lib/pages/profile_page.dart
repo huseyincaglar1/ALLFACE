@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import '../util/my_list_tile.dart';
 
 class ProfilePage extends StatefulWidget {
-  ProfilePage({super.key});
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -88,41 +88,90 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void editMessage(String postId, String currentMessage, BuildContext context) {
-    editPostController.text = currentMessage;
+  editPostController.text = currentMessage;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Gönderi Düzenleme'),
-          content: TextField(
-            controller: editPostController,
-            decoration: const InputDecoration(hintText: "Gönderini düzenle"),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Gönderi Düzenleme'),
+        content: TextField(
+          controller: editPostController,
+          decoration: const InputDecoration(hintText: "Gönderini düzenle"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('İptal'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('İptal'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (editPostController.text.isNotEmpty) {
-                  FirebaseFirestore.instance
-                      .collection('Posts')
-                      .doc(postId)
-                      .update({'PostMessage': editPostController.text});
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('Kaydet'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+          TextButton(
+            onPressed: () {
+              if (editPostController.text.isNotEmpty) {
+                FirebaseFirestore.instance
+                    .collection('Posts')
+                    .doc(postId)
+                    .update({'PostMessage': editPostController.text});
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Kaydet'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Silme onayı
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Silmek İstediğinize Emin Misiniz?'),
+                    content: const Text('Bu gönderiyi silmek istiyorsunuz.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Onay penceresini kapat
+                        },
+                        child: const Text('Hayır'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Gönderiyi sil
+                          final postRef = FirebaseFirestore.instance.collection('Posts').doc(postId);
+                          final publishedActivitiesRef = FirebaseFirestore.instance
+                              .collection('PublishedActivities')
+                              .doc(postId); // "PublishedActivities" koleksiyonundan silmek için
+
+                          // Her iki koleksiyondan silme işlemi
+                          Future.wait([
+                            postRef.delete(),
+                            publishedActivitiesRef.delete(),
+                          ]).then((_) {
+                            print('Gönderi ve aktiviteler silindi');
+                            // Kullanıcı gönderilerini güncelle
+                            setState(() {}); // Listeyi güncelle
+                            Navigator.pop(context); // Onay penceresini kapat
+                            Navigator.pop(context); // Düzenleme penceresini kapat
+                          }).catchError((error) {
+                            print('Silme işlemi sırasında hata oluştu: $error');
+                          });
+                        },
+                        child: const Text('Evet'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: const Text('Sil'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -222,15 +271,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     String message = post['PostMessage'];
                     Timestamp timestamp = post['TimeStamp'];
                     String? actName =
-                        (post.data() as Map<String, dynamic>)['activityName'] ??
-                            "";
+                        (post.data() as Map<String, dynamic>)['activityName'] ?? "";
                     String? mood =
                         (post.data() as Map<String, dynamic>)['mood'] ?? "";
 
                     return MyListTile(
                       title: [
                         if (actName != null && actName.isNotEmpty)
-                          "Activite: $actName",
+                          "Aktivite: $actName",
                         if (mood != null && mood.isNotEmpty) "Mod: $mood",
                         message
                       ].where((s) => s.isNotEmpty).join('\n'),
@@ -349,8 +397,7 @@ class ProfileDetailRow extends StatelessWidget {
   final String label;
   final String? value;
 
-  const ProfileDetailRow({Key? key, required this.label, this.value})
-      : super(key: key);
+  const ProfileDetailRow({super.key, required this.label, this.value});
 
   @override
   Widget build(BuildContext context) {

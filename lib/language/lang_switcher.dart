@@ -7,9 +7,9 @@ class LanguageSwitcher extends StatefulWidget {
   final bool showText;
 
    const LanguageSwitcher({
-    Key? key,
+    super.key,
     this.showText = false,
-  }) : super(key: key);
+  });
 
   @override
   _LanguageSwitcherState createState() => _LanguageSwitcherState();

@@ -19,7 +19,7 @@ class _Circular_arcState extends State<Circular_arc>
     super.initState();
 
     animController =
-        AnimationController(duration: Duration(seconds: 3), vsync: this);
+        AnimationController(duration: const Duration(seconds: 3), vsync: this);
     final curveAnimation =
         CurvedAnimation(parent: animController, curve: Curves.easeInOutCubic);
     animation = Tween<double>(begin: 0.0, end: 3.14).animate(curveAnimation)
@@ -41,11 +41,11 @@ class _Circular_arcState extends State<Circular_arc>
       child: Container(
         child: Stack(children: [
           CustomPaint(
-            size: Size(150, 150),
+            size: const Size(150, 150),
             painter: ProgressArc(0, Colors.black54, true),
           ),
           CustomPaint(
-            size: Size(150, 150),
+            size: const Size(150, 150),
             painter: ProgressArc(widget.progress * math.pi, Colors.redAccent, false),
           ),
           Positioned(
@@ -53,7 +53,7 @@ class _Circular_arcState extends State<Circular_arc>
             left: 80,
             child: Text(
               "${(widget.progress * 100).round()}%",
-              style: TextStyle(color: Colors.white, fontSize: 25),
+              style: const TextStyle(color: Colors.white, fontSize: 25),
             ),
           )
         ]),
@@ -62,11 +62,11 @@ class _Circular_arcState extends State<Circular_arc>
   }
 }
 
-final Gradient gradient = new LinearGradient(colors: <Color>[
+final Gradient gradient = LinearGradient(colors: <Color>[
   Colors.greenAccent.withOpacity(1.0),
   Colors.yellowAccent.withOpacity(1.0),
   Colors.redAccent.withOpacity(1.0),
-], stops: [
+], stops: const [
   0.0,
   0.5,
   1.0,
@@ -81,10 +81,10 @@ class ProgressArc extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTRB(0, 0, 200, 200);
-    final startAngle = -math.pi;
-    final sweetAngle = arc != null ? arc : math.pi;
-    final userCenter = false;
+    const rect = Rect.fromLTRB(0, 0, 200, 200);
+    const startAngle = -math.pi;
+    final sweetAngle = arc ?? math.pi;
+    const userCenter = false;
     final paint = Paint()
       ..strokeCap = StrokeCap.round
       ..color = progressColor

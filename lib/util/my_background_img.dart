@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class BackgroundContainer extends StatelessWidget {
   final Widget child;
 
-  const BackgroundContainer({Key? key, required this.child}) : super(key: key);
+  const BackgroundContainer({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
