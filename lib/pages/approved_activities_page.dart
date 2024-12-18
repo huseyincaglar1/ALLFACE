@@ -47,7 +47,8 @@ class _ApprovedActivitiesPageState extends State<ApprovedActivitiesPage> {
                     itemCount: approvedActivities.length,
                     itemBuilder: (context, index) {
                       final activity = approvedActivities[index];
-                      String activityName = activity['activityName'] ?? "Bilinmiyor";
+                      String activityName =
+                          activity['activityName'] ?? "Bilinmiyor";
                       String mood = activity['mood'] ?? "Bilinmiyor";
                       DateTime approvalDate =
                           DateTime.parse(activity['approvalDate']);
@@ -70,84 +71,84 @@ class _ApprovedActivitiesPageState extends State<ApprovedActivitiesPage> {
   }
 
   Future<void> publishActivity(String activityName, String mood) async {
-  String comment = '';
+    String comment = '';
 
-  // Show dialog for user to input comment before publishing
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Gönderi Paylaş'),
-        content: TextField(
-          onChanged: (value) {
-            comment = value;
-          },
-          maxLines: null,
-          keyboardType: TextInputType.multiline,
-          decoration: InputDecoration(
-            hintText: "Biraz aktivitenden bahsetsene",
-            hintStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Dialogdan çık
+    // Show dialog for user to input comment before publishing
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Gönderi Paylaş'),
+          content: TextField(
+            onChanged: (value) {
+              comment = value;
             },
-            child: const Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Burada dialogu kapatmadan önce işlemi başlatıyoruz
-              Navigator.of(context).pop(); // Dialogu kapat
-
-              // Firestore'da veri kaydetme işlemini başlat
-              publishToFirestore(activityName, mood, comment);
-            },
-            child: Text(
-              'Paylaş',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            maxLines: null,
+            keyboardType: TextInputType.multiline,
+            decoration: InputDecoration(
+              hintText: "Biraz aktivitenden bahsetsene",
+              hintStyle:
+                  TextStyle(color: Theme.of(context).colorScheme.secondary),
             ),
           ),
-        ],
-      );
-    },
-  );
-}
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Dialogdan çık
+              },
+              child: const Text('İptal'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Burada dialogu kapatmadan önce işlemi başlatıyoruz
+                Navigator.of(context).pop(); // Dialogu kapat
 
-Future<void> publishToFirestore(String activityName, String mood, String comment) async {
-  if (user != null && comment.isNotEmpty) {
-    try {
-      await firestore.collection('PublishedActivities').add({
-        'activityName': activityName,
-        'mood': mood,
-        'UserEmail': user!.email,
-        'PostMessage': comment,
-        'TimeStamp': Timestamp.now(),
-      });
-      // Başarılı olduğunda bir mesaj göster
+                // Firestore'da veri kaydetme işlemini başlat
+                publishToFirestore(activityName, mood, comment);
+              },
+              child: Text(
+                'Paylaş',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> publishToFirestore(
+      String activityName, String mood, String comment) async {
+    if (user != null && comment.isNotEmpty) {
+      try {
+        await firestore.collection('PublishedActivities').add({
+          'activityName': activityName,
+          'mood': mood,
+          'UserEmail': user!.email,
+          'PostMessage': comment,
+          'TimeStamp': Timestamp.now(),
+        });
+        // Başarılı olduğunda bir mesaj göster
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Gönderi başarıyla paylaşıldı."),
+          ),
+        );
+      } catch (e) {
+        // Hata mesajı göster
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Gönderi kaydedilirken hata oluştu: $e"),
+          ),
+        );
+      }
+    } else {
+      // Kullanıcı girişi yoksa veya yorum boşsa hata göster
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Gönderi başarıyla paylaşıldı."),
-        ),
-      );
-    } catch (e) {
-      // Hata mesajı göster
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Gönderi kaydedilirken hata oluştu: $e"),
+          content: Text("Kullanıcı girişi yapılmamış veya yorum boş."),
         ),
       );
     }
-  } else {
-    // Kullanıcı girişi yoksa veya yorum boşsa hata göster
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Kullanıcı girişi yapılmamış veya yorum boş."),
-      ),
-    );
   }
-}
-
-
 }

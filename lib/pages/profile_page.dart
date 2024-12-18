@@ -88,90 +88,94 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void editMessage(String postId, String currentMessage, BuildContext context) {
-  editPostController.text = currentMessage;
+    editPostController.text = currentMessage;
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Gönderi Düzenleme'),
-        content: TextField(
-          controller: editPostController,
-          decoration: const InputDecoration(hintText: "Gönderini düzenle"),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('İptal'),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Gönderi Düzenleme'),
+          content: TextField(
+            controller: editPostController,
+            decoration: const InputDecoration(hintText: "Gönderini düzenle"),
           ),
-          TextButton(
-            onPressed: () {
-              if (editPostController.text.isNotEmpty) {
-                FirebaseFirestore.instance
-                    .collection('Posts')
-                    .doc(postId)
-                    .update({'PostMessage': editPostController.text});
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Kaydet'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Silme onayı
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('Silmek İstediğinize Emin Misiniz?'),
-                    content: const Text('Bu gönderiyi silmek istiyorsunuz.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context); // Onay penceresini kapat
-                        },
-                        child: const Text('Hayır'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Gönderiyi sil
-                          final postRef = FirebaseFirestore.instance.collection('Posts').doc(postId);
-                          final publishedActivitiesRef = FirebaseFirestore.instance
-                              .collection('PublishedActivities')
-                              .doc(postId); // "PublishedActivities" koleksiyonundan silmek için
-
-                          // Her iki koleksiyondan silme işlemi
-                          Future.wait([
-                            postRef.delete(),
-                            publishedActivitiesRef.delete(),
-                          ]).then((_) {
-                            print('Gönderi ve aktiviteler silindi');
-                            // Kullanıcı gönderilerini güncelle
-                            setState(() {}); // Listeyi güncelle
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('İptal'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (editPostController.text.isNotEmpty) {
+                  FirebaseFirestore.instance
+                      .collection('Posts')
+                      .doc(postId)
+                      .update({'PostMessage': editPostController.text});
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('Kaydet'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Silme onayı
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Silmek İstediğinize Emin Misiniz?'),
+                      content: const Text('Bu gönderiyi silmek istiyorsunuz.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
                             Navigator.pop(context); // Onay penceresini kapat
-                            Navigator.pop(context); // Düzenleme penceresini kapat
-                          }).catchError((error) {
-                            print('Silme işlemi sırasında hata oluştu: $error');
-                          });
-                        },
-                        child: const Text('Evet'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text('Sil'),
-          ),
-        ],
-      );
-    },
-  );
-}
+                          },
+                          child: const Text('Hayır'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Gönderiyi sil
+                            final postRef = FirebaseFirestore.instance
+                                .collection('Posts')
+                                .doc(postId);
+                            final publishedActivitiesRef = FirebaseFirestore
+                                .instance
+                                .collection('PublishedActivities')
+                                .doc(
+                                    postId); // "PublishedActivities" koleksiyonundan silmek için
 
-
+                            // Her iki koleksiyondan silme işlemi
+                            Future.wait([
+                              postRef.delete(),
+                              publishedActivitiesRef.delete(),
+                            ]).then((_) {
+                              print('Gönderi ve aktiviteler silindi');
+                              // Kullanıcı gönderilerini güncelle
+                              setState(() {}); // Listeyi güncelle
+                              Navigator.pop(context); // Onay penceresini kapat
+                              Navigator.pop(
+                                  context); // Düzenleme penceresini kapat
+                            }).catchError((error) {
+                              print(
+                                  'Silme işlemi sırasında hata oluştu: $error');
+                            });
+                          },
+                          child: const Text('Evet'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: const Text('Sil'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +227,11 @@ class _ProfilePageState extends State<ProfilePage> {
         CircleAvatar(
           radius: 64,
           backgroundColor: Theme.of(context).colorScheme.primary,
-          child:  Icon(Icons.person, size: 64, color: Theme.of(context).colorScheme.onSurface,),
+          child: Icon(
+            Icons.person,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         const SizedBox(height: 5),
         Text(
@@ -271,7 +279,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     String message = post['PostMessage'];
                     Timestamp timestamp = post['TimeStamp'];
                     String? actName =
-                        (post.data() as Map<String, dynamic>)['activityName'] ?? "";
+                        (post.data() as Map<String, dynamic>)['activityName'] ??
+                            "";
                     String? mood =
                         (post.data() as Map<String, dynamic>)['mood'] ?? "";
 
@@ -310,7 +319,11 @@ class _ProfilePageState extends State<ProfilePage> {
               CircleAvatar(
                 radius: 64,
                 backgroundColor: Theme.of(context).colorScheme.primary,
-                child:  Icon(Icons.person, size: 64, color: Theme.of(context).colorScheme.onSurface,),
+                child: Icon(
+                  Icons.person,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: 20),
               TextField(

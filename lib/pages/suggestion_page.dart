@@ -18,7 +18,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
   List<String> _myDecisionSuggestions = [];
   List<String> _mostChosenSuggestions = [];
   bool _isLoading = true;
-  String url = 'http://192.168.80.16';
+  String url = 'http://10.11.13.76';
 
   @override
   void didChangeDependencies() {
@@ -60,7 +60,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
     String job = userDoc['Occupation'];
 
     try {
-      final response = await _postRequest('http://192.168.80.16:5000/predict', {
+      final response = await _postRequest('http://10.11.13.76:5000/predict', {
         'yas': age,
         'meslek': job,
         'cinsiyet': gender,
@@ -106,7 +106,8 @@ class _SuggestionPageState extends State<SuggestionPage> {
     String userId = user.email!;
 
     try {
-      final response = await _postRequest('http://192.168.80.16:5000/get_most_frequent_activity', {
+      final response = await _postRequest(
+          'http://10.11.13.76:5000/get_most_frequent_activity', {
         'user_id': userId,
         'mood': args["emotion"].toLowerCase(),
       });
@@ -121,7 +122,9 @@ class _SuggestionPageState extends State<SuggestionPage> {
         if (decodedResponse['most_frequent_activity_user'] != null &&
             decodedResponse['most_frequent_activity_user'] is String) {
           setState(() {
-            _myDecisionSuggestions = [decodedResponse['most_frequent_activity_user']];
+            _myDecisionSuggestions = [
+              decodedResponse['most_frequent_activity_user']
+            ];
           });
         } else {
           setState(() {
@@ -129,7 +132,8 @@ class _SuggestionPageState extends State<SuggestionPage> {
           });
         }
       } else {
-        print('Kullanıcı aktiviteleri isteği başarısız oldu. Status Code: ${response.statusCode}');
+        print(
+            'Kullanıcı aktiviteleri isteği başarısız oldu. Status Code: ${response.statusCode}');
       }
     } catch (e) {
       print('Hata: $e');
@@ -141,7 +145,8 @@ class _SuggestionPageState extends State<SuggestionPage> {
     if (args == null) return;
 
     try {
-      final response = await _postRequest('http://192.168.80.16:5000/get_most_frequent_activity', {
+      final response = await _postRequest(
+          'http://10.11.13.76:5000/get_most_frequent_activity', {
         'user_id': 'all_users',
         'mood': args["emotion"].toLowerCase(),
       });
@@ -156,11 +161,14 @@ class _SuggestionPageState extends State<SuggestionPage> {
         if (decodedResponse['most_frequent_activity_all'] != null) {
           if (decodedResponse['most_frequent_activity_all'] is List) {
             setState(() {
-              _mostChosenSuggestions = List<String>.from(decodedResponse['most_frequent_activity_all']);
+              _mostChosenSuggestions = List<String>.from(
+                  decodedResponse['most_frequent_activity_all']);
             });
           } else {
             setState(() {
-              _mostChosenSuggestions = [decodedResponse['most_frequent_activity_all'].toString()];
+              _mostChosenSuggestions = [
+                decodedResponse['most_frequent_activity_all'].toString()
+              ];
             });
           }
         } else {
@@ -169,7 +177,8 @@ class _SuggestionPageState extends State<SuggestionPage> {
           });
         }
       } else {
-        print('Tüm kullanıcı aktiviteleri isteği başarısız oldu. Status Code: ${response.statusCode}');
+        print(
+            'Tüm kullanıcı aktiviteleri isteği başarısız oldu. Status Code: ${response.statusCode}');
         setState(() {
           _mostChosenSuggestions = ["Hiçbir kullanıcı önerisi yok."];
         });

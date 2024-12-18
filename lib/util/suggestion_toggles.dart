@@ -31,8 +31,8 @@ class _SuggestionTogglesState extends State<SuggestionToggles> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ActivityPage(suggestion: suggestion, mood: args["emotion"]), // Örnek mood
+        builder: (context) => ActivityPage(
+            suggestion: suggestion, mood: args["emotion"]), // Örnek mood
       ),
     );
   }
@@ -44,7 +44,8 @@ class _SuggestionTogglesState extends State<SuggestionToggles> {
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(), // Disable scrolling of inner ListView
+      physics:
+          NeverScrollableScrollPhysics(), // Disable scrolling of inner ListView
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         return ListTile(
@@ -59,7 +60,8 @@ class _SuggestionTogglesState extends State<SuggestionToggles> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView( // Make the entire content scrollable
+      child: SingleChildScrollView(
+        // Make the entire content scrollable
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -88,7 +90,8 @@ class _SuggestionTogglesState extends State<SuggestionToggles> {
               },
             ),
             ExpansionTile(
-              title: Text('Tüm Kullanıcıların En Çok Tercih Ettiği Etkinlikler'),
+              title:
+                  Text('Tüm Kullanıcıların En Çok Tercih Ettiği Etkinlikler'),
               children: [
                 _buildSuggestionList(widget.mostChosenSuggestions),
               ],

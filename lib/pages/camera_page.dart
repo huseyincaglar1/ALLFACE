@@ -19,7 +19,7 @@ class _CameraPageState extends State<CameraPage> {
   CameraController? cameraController;
   CameraDevice? cameraDevice;
   int selectedCamIdx = 1;
-  double progress = 0.0; // Progress of emotion prediction
+  double progress = 0.0;
   File? capturedImageFile; // Tutulan fotoğraf dosyası
 
   String? emotion = "Mutlu"; // Default duygu
@@ -37,7 +37,6 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   void initState() {
-    // Get available cameras
     loadModel();
     loadCamera();
     super.initState();
@@ -51,7 +50,7 @@ class _CameraPageState extends State<CameraPage> {
     );
 
     // Kamera kontrolörü başlatılıyor
-    await cameraController!.initialize(); 
+    await cameraController!.initialize();
     isCameraInitialized = true;
 
     if (!isModelBusy) {
@@ -78,7 +77,7 @@ class _CameraPageState extends State<CameraPage> {
 
   Future<void> runModel(input) async {
     if (cameraImage != null && cameraImage!.planes.isNotEmpty && !isModelBusy) {
-      isModelBusy = true; // Mark interpreter as busy
+      isModelBusy = true;
       try {
         // Dönüşümü düz pozisyonda ayarlıyoruz
         var predictions = await Tflite.runModelOnFrame(
@@ -100,21 +99,37 @@ class _CameraPageState extends State<CameraPage> {
             setState(() {
               emotion = element['label'];
               emotionCounts[emotion!] = (emotionCounts[emotion] ?? 0) + 1;
-              progress = (emotionCounts[emotion]! / 50.0).clamp(0.0, 1.0); // 0.0 ile 1.0 arasında tut
+              progress = (emotionCounts[emotion]! / 50.0)
+                  .clamp(0.0, 1.0); // 0.0 ile 1.0 arasında tut
             });
           }
           if (emotionCounts[emotion] != null && emotionCounts[emotion]! == 50) {
             await captureImage(); // 50. resim çekiliyor
             cameraController!.stopImageStream();
             Navigator.pushReplacementNamed(context, '/verificationpage',
-                arguments: {"emotion": emotion, "capturedImageFile": capturedImageFile});
+                arguments: {
+                  "emotion": emotion,
+                  "capturedImageFile": capturedImageFile
+                });
+            await stopCameraAndModel();
+          }
+          // Yüzde 100 olduğunda sayfaya geçiş
+          if (progress == 1.0) {
+            await captureImage(); // 50. resim çekiliyor
+            cameraController!.stopImageStream();
+            Navigator.pushReplacementNamed(context, '/verificationpage',
+                arguments: {
+                  "emotion": emotion,
+                  "capturedImageFile": capturedImageFile
+                });
             await stopCameraAndModel();
           }
         }
       } catch (e) {
         debugPrint("Error running model: $e");
       } finally {
-        isModelBusy = false; // Çıkarım tamamlandıktan sonra interpreter'ı müsait yap
+        isModelBusy =
+            false; // Çıkarım tamamlandıktan sonra interpreter'ı müsait yap
       }
     }
   }
@@ -122,7 +137,8 @@ class _CameraPageState extends State<CameraPage> {
   Future<void> captureImage() async {
     final image = await cameraController!.takePicture(); // Resim çekiliyor
     setState(() {
-      capturedImageFile = File(image.path); // Çekilen resim dosya olarak kaydediliyor
+      capturedImageFile =
+          File(image.path); // Çekilen resim dosya olarak kaydediliyor
     });
   }
 
@@ -168,7 +184,8 @@ class _CameraPageState extends State<CameraPage> {
             },
           ),
         ),
-        body: SingleChildScrollView( // Scroll özelliği burada ekleniyor
+        body: SingleChildScrollView(
+          // Scroll özelliği burada ekleniyor
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -178,7 +195,8 @@ class _CameraPageState extends State<CameraPage> {
               ),
               Stack(
                 children: [
-                  cameraController != null && cameraController!.value.isInitialized
+                  cameraController != null &&
+                          cameraController!.value.isInitialized
                       ? CameraPreview(cameraController!)
                       : const Center(child: CircularProgressIndicator()),
                   Positioned(

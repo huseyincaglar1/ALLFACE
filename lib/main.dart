@@ -2,6 +2,7 @@ import 'package:demoaiemo/language/lang_provider.dart';
 import 'package:demoaiemo/pages/camera_page.dart';
 import 'package:demoaiemo/auth/auth_page.dart';
 import 'package:demoaiemo/pages/home_page.dart';
+import 'package:demoaiemo/pages/feedback_page.dart';
 import 'package:demoaiemo/pages/verification_page.dart';
 import 'package:demoaiemo/pages/profile_page.dart';
 import 'package:demoaiemo/pages/setting_page.dart';
@@ -74,9 +75,10 @@ class _MainAppState extends State<MainApp> {
             '/profilepage': (context) => const ProfilePage(),
             '/settingpage': (context) => const SettingPage(),
             '/suggestionpage': (context) => const SuggestionPage(),
-            '/verificationpage': (context) => const VerificationPage(), 
+            '/verificationpage': (context) => const VerificationPage(),
             '/apprrovedactivitiespage': (context) =>
                 const ApprovedActivitiesPage(),
+            '/feedbackpage': (context) => const FeedbackPage(),
           },
         );
       },
